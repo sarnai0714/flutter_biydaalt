@@ -2,7 +2,7 @@ name: smart_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -31,19 +31,21 @@ dependencies:
   flutter:
     sdk: flutter
 
-  lottie: ^3.1.0             # Маш гоё JSON анимаци (UI/Animation)
-  shimmer: ^3.0.0            # Дата уншиж байх үед харагдах эффект (UI/UX)
-  glassmorphism: ^3.0.0      # Шилэн мэт тунгалаг эффект (Design)
-  http: ^1.2.1               # Сүлжээний хүсэлт (Networking)
-  carousel_slider: ^5.0.0    # Зураг гүйлгэдэг слайдер (UI/Widget)
-  dio: ^5.4.0              # Сүлжээнээс өгөгдөл татах (Networking)
-  google_fonts: ^6.2.1      # Гоё фонт ашиглах (UI/Typography)
+  lottie: ^3.1.0 # Маш гоё JSON анимаци (UI/Animation)
+  shimmer: ^3.0.0 # Дата уншиж байх үед харагдах эффект (UI/UX)
+  glassmorphism: ^3.0.0 # Шилэн мэт тунгалаг эффект (Design)
+  http: ^1.2.1 # Сүлжээний хүсэлт (Networking)
+  carousel_slider: ^5.0.0 # Зураг гүйлгэдэг слайдер (UI/Widget)
+  dio: ^5.4.0 # Сүлжээнээс өгөгдөл татах (Networking)
+  google_fonts: ^6.2.1 # Гоё фонт ашиглах (UI/Typography)
   font_awesome_flutter: ^10.7.0 # Илүү олон дүрс ашиглах (Icons)
-  provider: ^6.1.2          # Төлөв удирдах (State Management)
+  provider: ^6.1.2 # Төлөв удирдах (State Management)
   animated_text_kit: ^4.2.2 # Анимацитай текст (UI/Animation)
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  liquid_swipe: ^3.1.0
+  ffi_leak_tracker: ^0.1.2
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +66,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

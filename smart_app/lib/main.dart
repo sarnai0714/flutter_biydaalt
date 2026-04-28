@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart' hide CarouselController;
 void main() => runApp(const MaterialApp(home: AdvancedShowcase(), debugShowCheckedModeBanner: false));
@@ -17,7 +18,7 @@ class AdvancedShowcase extends StatefulWidget {
 class _AdvancedShowcaseState extends State<AdvancedShowcase> {
   int _currentIndex = 0;
   final List<Widget> _pages = [
-    const LottiePage(),
+    const AnimatedTextPage(),
     const ShimmerPage(),
     const GlassPage(),
     const CarouselPage(),
@@ -34,7 +35,7 @@ class _AdvancedShowcaseState extends State<AdvancedShowcase> {
         unselectedItemColor: Colors.grey,
         onTap: (i) => setState(() => _currentIndex = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.animation), label: 'Lottie'),
+          BottomNavigationBarItem(icon: Icon(Icons.animation), label: 'animated_text'),
           BottomNavigationBarItem(icon: Icon(Icons.hourglass_empty), label: 'Shimmer'),
           BottomNavigationBarItem(icon: Icon(Icons.blur_on), label: 'Glass'),
           BottomNavigationBarItem(icon: Icon(Icons.view_carousel), label: 'Slider'),
@@ -45,18 +46,48 @@ class _AdvancedShowcaseState extends State<AdvancedShowcase> {
   }
 }
 
-// 1. LOTTIE: Вэбээс анимаци шууд тоглуулах
-class LottiePage extends StatelessWidget {
-  const LottiePage({super.key});
+
+// 2. animated_text_kit
+class AnimatedTextPage extends StatelessWidget {
+  const AnimatedTextPage({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text("Lottie Animation", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          Lottie.network('https://assets10.lottiefiles.com/packages/lf20_u4j3ucnx.json'),
-        ],
+    return Scaffold(
+      backgroundColor: const Color(0xff0F172A),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Welcome 👋",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            /// Animated Text
+            DefaultTextStyle(
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.cyanAccent,
+              ),
+              child: AnimatedTextKit(
+                repeatForever: true,
+                animatedTexts: [
+                  TyperAnimatedText("Flutter Developer"),
+                  TyperAnimatedText("Mobile App Creator"),
+                  TyperAnimatedText("UI/UX Lover 💙"),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -132,11 +163,27 @@ class HttpPage extends StatefulWidget {
 }
 
 class _HttpPageState extends State<HttpPage> {
-  String fact = "Татах...";
-  fetchFact() async {
-    final res = await http.get(Uri.parse('https://catfact.ninja/fact'));
-    setState(() => fact = jsonDecode(res.body)['fact']);
+  String fact = "Дата татаж байна...";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchFact(); // Хуудас нээгдэхэд шууд татах
   }
+
+  Future<void> fetchFact() async {
+    try {
+      final res = await http.get(Uri.parse('https://catfact.ninja/fact'));
+      if (res.statusCode == 200) {
+        setState(() => fact = jsonDecode(res.body)['fact']);
+      } else {
+        setState(() => fact = "Алдаа гарлаа.");
+      }
+    } catch (e) {
+      setState(() => fact = "Интернэт холболтоо шалгана уу.");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -144,10 +191,31 @@ class _HttpPageState extends State<HttpPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_download, size: 50, color: Colors.blue),
+          const Icon(Icons.pets, size: 80, color: Colors.orangeAccent),
           const SizedBox(height: 20),
-          Text(fact, textAlign: TextAlign.center),
-          ElevatedButton(onPressed: fetchFact, child: const Text("Мэдээлэл шинэчлэх"))
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Text(
+              fact,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+            ),
+          ),
+          const SizedBox(height: 30),
+          ElevatedButton.icon(
+            onPressed: fetchFact,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Дараагийн баримт"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          )
         ],
       ),
     );
