@@ -187,7 +187,12 @@ class _PinputPageState extends State<PinputPage> {
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                      color: Colors.teal,
+                      width: 1.5,
                     ),
+                    ),
+
                   ),
                 ),
               ],
