@@ -233,13 +233,62 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final controller = TextEditingController();
+  final TextEditingController controller = TextEditingController();
   List<String> messages = [];
+
+  late Socket socket;
+
+  @override
+  void initState() {
+    super.initState();
+    initSocket();
+  }
+
+  void initSocket() {
+    socket = io(
+      'http://127.0.0.1:3000',
+      OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .build(),
+    );
+
+    socket.connect();
+
+    socket.onConnect((_) {
+      print('Connected ✅');
+    });
+
+    socket.on('message', (data) {
+      setState(() {
+        messages.add(data.toString());
+      });
+    });
+
+    socket.onDisconnect((_) {
+      print('Disconnected ❌');
+    });
+  }
 
   void send() {
     if (controller.text.trim().isEmpty) return;
-    setState(() => messages.add(controller.text.trim()));
+
+    final msg = controller.text.trim();
+
+    socket.emit('message', msg);
+
+    setState(() {
+      messages.add(msg);
+    });
+
     controller.clear();
+  }
+
+  @override
+  void dispose() {
+    socket.dispose();
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -282,8 +331,9 @@ class _ChatPageState extends State<ChatPage> {
                         final isMe = i % 2 == 0;
 
                         return Align(
-                          alignment:
-                              isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 4),
                             padding: const EdgeInsets.all(12),
@@ -303,7 +353,6 @@ class _ChatPageState extends State<ChatPage> {
                     ),
             ),
 
-            // input
             Container(
               margin: const EdgeInsets.all(12),
               padding: const EdgeInsets.symmetric(horizontal: 12),
