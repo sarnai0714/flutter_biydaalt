@@ -1,13 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:lottie/lottie.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:glassmorphism/glassmorphism.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:http/http.dart' as http;
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
+import 'package:rive/rive.dart' as rive; // Нэршлийн алдаанаас сэргийлнэ
+import 'package:shimmer/shimmer.dart';
+import 'package:slider_button/slider_button.dart';
 import 'dart:convert';
-import 'package:flutter/material.dart' hide CarouselController;
-void main() => runApp(const MaterialApp(home: AdvancedShowcase(), debugShowCheckedModeBanner: false));
+
+void main() => runApp(const MaterialApp(
+  home: AdvancedShowcase(), 
+  debugShowCheckedModeBanner: false
+));
 
 class AdvancedShowcase extends StatefulWidget {
   const AdvancedShowcase({super.key});
@@ -17,74 +22,144 @@ class AdvancedShowcase extends StatefulWidget {
 
 class _AdvancedShowcaseState extends State<AdvancedShowcase> {
   int _currentIndex = 0;
+  
+  // 5 өөр багцыг агуулсан хуудсууд
   final List<Widget> _pages = [
-    const AnimatedTextPage(),
-    const ShimmerPage(),
-    const GlassPage(),
-    const CarouselPage(),
-    const HttpPage(),
+    const AnimatedTextPage(),   // 1. Text Animation
+    const CelebrationPage(),    // 2. Confetti & Rive
+    const ActionPage(),         // 3. Slider Button & Shimmer
+    const CarouselPage(),       // 4. Carousel Slider
+    const HttpPage(),           // 5. HTTP API
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Project Showcase 2026"),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+      ),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Colors.purple,
+        selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
         onTap: (i) => setState(() => _currentIndex = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.animation), label: 'animated_text'),
-          BottomNavigationBarItem(icon: Icon(Icons.hourglass_empty), label: 'Shimmer'),
-          BottomNavigationBarItem(icon: Icon(Icons.blur_on), label: 'Glass'),
-          BottomNavigationBarItem(icon: Icon(Icons.view_carousel), label: 'Slider'),
-          BottomNavigationBarItem(icon: Icon(Icons.cloud_sync), label: 'HTTP'),
+          BottomNavigationBarItem(icon: Icon(Icons.text_fields), label: 'Текст'),
+          BottomNavigationBarItem(icon: Icon(Icons.celebration), label: 'Амжилт'),
+          BottomNavigationBarItem(icon: Icon(Icons.touch_app), label: 'Үйлдэл'),
+          BottomNavigationBarItem(icon: Icon(Icons.view_carousel), label: 'Слайдер'),
+          BottomNavigationBarItem(icon: Icon(Icons.cloud_download), label: 'Дата'),
         ],
       ),
     );
   }
 }
 
-
-// 2. animated_text_kit
+// 1. ТЕКСТ АНИМАЦИ (Lottie алдаа засагдсан)
 class AnimatedTextPage extends StatelessWidget {
   const AnimatedTextPage({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xff0F172A),
-      body: Center(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Шинэ ажилладаг Lottie линк (403 алдаа гарахгүй)
+          Lottie.network(
+            'https://raw.githubusercontent.com/xvrh/lottie-flutter/master/example/assets/Mobilo/A.json', 
+            height: 200,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(Icons.error, color: Colors.red, size: 100);
+            },
+          ),
+          const SizedBox(height: 20),
+          DefaultTextStyle(
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.teal),
+            child: AnimatedTextKit(
+              repeatForever: true,
+              animatedTexts: [
+                TypewriterAnimatedText("Сайн байна уу?"),
+                TypewriterAnimatedText("Сонин сайхан юу байна?"),
+                TypewriterAnimatedText("Сайхан амарч байна уу?"),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 2. АМЖИЛТ (Rive & Confetti)
+class CelebrationPage extends StatelessWidget {
+  const CelebrationPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            height: 200, width: 200,
+            child: rive.RiveAnimation.network(
+              'https://cdn.rive.app/animations/vehicles.riv',
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(height: 30),
+          const Text("Амжилттай!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => Confetti.launch(context, options: const ConfettiOptions(particleCount: 100, spread: 70, y: 0.6)),
+            icon: const Icon(Icons.celebration),
+            label: const Text("БАЯР ХҮРГЭЕ"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 3. ҮЙЛДЭЛ (SliderButton & Shimmer)
+class ActionPage extends StatelessWidget {
+  const ActionPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Welcome 👋",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+            Shimmer.fromColors(
+              baseColor: Colors.grey[400]!,
+              highlightColor: Colors.grey[100]!,
+              child: const Text(
+                "БАТАЛГААЖУУЛАХ",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            /// Animated Text
-            DefaultTextStyle(
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.cyanAccent,
-              ),
-              child: AnimatedTextKit(
-                repeatForever: true,
-                animatedTexts: [
-                  TyperAnimatedText("Flutter Developer"),
-                  TyperAnimatedText("Mobile App Creator"),
-                  TyperAnimatedText("UI/UX Lover 💙"),
-                ],
-              ),
+            const SizedBox(height: 50),
+            SliderButton(
+              action: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Амжилттай баталгаажлаа!")),
+                );
+                return true;
+              },
+              label: const Text("Чирж баталгаажуул", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 17)),
+              icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+              buttonColor: Colors.teal,
+              backgroundColor: Colors.teal.shade50,
+              baseColor: Colors.teal,
+              width: 280,
             ),
           ],
         ),
@@ -93,69 +168,27 @@ class AnimatedTextPage extends StatelessWidget {
   }
 }
 
-// 2. SHIMMER: Дата уншиж байх үеийн "Skeleton" эффект
-class ShimmerPage extends StatelessWidget {
-  const ShimmerPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 6,
-      itemBuilder: (_, __) => Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: ListTile(
-          leading: const CircleAvatar(backgroundColor: Colors.white, radius: 30),
-          title: Container(height: 10, color: Colors.white),
-          subtitle: Container(height: 10, width: 40, color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-// 3. GLASSMORPHISM: "Шилэн" дизайн
-class GlassPage extends StatelessWidget {
-  const GlassPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(image: DecorationImage(image: NetworkImage("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop"), fit: BoxFit.cover)),
-      child: Center(
-        child: GlassmorphicContainer(
-          width: 300, height: 200, borderRadius: 20, blur: 20, alignment: Alignment.bottomCenter,
-          border: 2, linearGradient: LinearGradient(colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)]),
-          borderGradient: LinearGradient(colors: [Colors.white.withOpacity(0.5), Colors.purple.withOpacity(0.5)]),
-          child: const Center(child: Text("Glass Effect", style: TextStyle(color: Colors.white, fontSize: 24))),
-        ),
-      ),
-    );
-  }
-}
-
-// 4. CAROUSEL SLIDER: Гүйдэг зургууд
+// 4. СЛАЙДЕР (Carousel Slider)
 class CarouselPage extends StatelessWidget {
   const CarouselPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Center(
       child: CarouselSlider(
-        options: CarouselOptions(height: 400.0, autoPlay: true, enlargeCenterPage: true),
-        items: [1,2,3].map((i) {
-          return Builder(builder: (BuildContext context) {
-            return Container(
-              width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.symmetric(horizontal: 5.0),
-              decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(20)),
-              child: Center(child: Text('Зураг $i', style: const TextStyle(fontSize: 16.0))),
-            );
-          });
+        options: CarouselOptions(height: 300.0, autoPlay: true, enlargeCenterPage: true),
+        items: [Colors.teal, Colors.tealAccent, Colors.blueGrey].map((color) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            decoration: BoxDecoration(color: color.withOpacity(0.3), borderRadius: BorderRadius.circular(20)),
+            child: Center(child: Icon(Icons.dashboard_customize, size: 100, color: color)),
+          );
         }).toList(),
       ),
     );
   }
 }
 
-// 5. HTTP: Сүлжээнээс дата авах
+// 5. ДАТА (HTTP API & Shimmer)
 class HttpPage extends StatefulWidget {
   const HttpPage({super.key});
   @override
@@ -163,60 +196,59 @@ class HttpPage extends StatefulWidget {
 }
 
 class _HttpPageState extends State<HttpPage> {
-  String fact = "Дата татаж байна...";
-
-  @override
-  void initState() {
-    super.initState();
-    fetchFact(); // Хуудас нээгдэхэд шууд татах
-  }
+  String fact = "Уншиж байна...";
+  bool loading = true;
 
   Future<void> fetchFact() async {
+    setState(() => loading = true);
     try {
       final res = await http.get(Uri.parse('https://catfact.ninja/fact'));
-      if (res.statusCode == 200) {
-        setState(() => fact = jsonDecode(res.body)['fact']);
-      } else {
-        setState(() => fact = "Алдаа гарлаа.");
-      }
+      setState(() {
+        fact = jsonDecode(res.body)['fact'];
+        loading = false;
+      });
     } catch (e) {
-      setState(() => fact = "Интернэт холболтоо шалгана уу.");
+      setState(() {
+        fact = "Интернэт холболтоо шалгана уу.";
+        loading = false;
+      });
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    fetchFact();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.pets, size: 80, color: Colors.orangeAccent),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(15),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            loading 
+              ? Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(height: 120, width: double.infinity, color: Colors.white),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(15)),
+                  child: Text(fact, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+                ),
+            const SizedBox(height: 30),
+            ElevatedButton.icon(
+              onPressed: fetchFact, 
+              icon: const Icon(Icons.refresh),
+              label: const Text("Шинэ дата татах"),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
             ),
-            child: Text(
-              fact,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
-            ),
-          ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: fetchFact,
-            icon: const Icon(Icons.refresh),
-            label: const Text("Дараагийн баримт"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
