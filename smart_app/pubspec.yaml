@@ -31,6 +31,16 @@ dependencies:
   flutter:
     sdk: flutter
 
+  lottie: ^3.1.0             # Маш гоё JSON анимаци (UI/Animation)
+  shimmer: ^3.0.0            # Дата уншиж байх үед харагдах эффект (UI/UX)
+  glassmorphism: ^3.0.0      # Шилэн мэт тунгалаг эффект (Design)
+  http: ^1.2.1               # Сүлжээний хүсэлт (Networking)
+  carousel_slider: ^5.0.0    # Зураг гүйлгэдэг слайдер (UI/Widget)
+  dio: ^5.4.0              # Сүлжээнээс өгөгдөл татах (Networking)
+  google_fonts: ^6.2.1      # Гоё фонт ашиглах (UI/Typography)
+  font_awesome_flutter: ^10.7.0 # Илүү олон дүрс ашиглах (Icons)
+  provider: ^6.1.2          # Төлөв удирдах (State Management)
+  animated_text_kit: ^4.2.2 # Анимацитай текст (UI/Animation)
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
