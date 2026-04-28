@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart' hide CarouselController;
+import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:http/http.dart' as http;
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:rive/rive.dart' as rive; // Нэршлийн алдаанаас сэргийлнэ
 import 'package:shimmer/shimmer.dart';
+import 'package:pinput/pinput.dart';
+import 'package:socket_io_client/socket_io_client.dart';
 import 'package:slider_button/slider_button.dart';
 import 'dart:convert';
 
@@ -27,9 +29,9 @@ class _AdvancedShowcaseState extends State<AdvancedShowcase> {
   final List<Widget> _pages = [
     const AnimatedTextPage(),   // 1. Text Animation
     const CelebrationPage(),    // 2. Confetti & Rive
-    const ActionPage(),         // 3. Slider Button & Shimmer
+    const PinputPage(),         // 3. Slider Button & Shimmer
     const CarouselPage(),       // 4. Carousel Slider
-    const HttpPage(),           // 5. HTTP API
+    const ChatPage(),           // 5. HTTP API
   ];
 
   @override
@@ -52,9 +54,9 @@ class _AdvancedShowcaseState extends State<AdvancedShowcase> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.text_fields), label: 'Текст'),
           BottomNavigationBarItem(icon: Icon(Icons.celebration), label: 'Амжилт'),
-          BottomNavigationBarItem(icon: Icon(Icons.touch_app), label: 'Үйлдэл'),
+          BottomNavigationBarItem(icon: Icon(Icons.lock), label: 'Код'),
           BottomNavigationBarItem(icon: Icon(Icons.view_carousel), label: 'Слайдер'),
-          BottomNavigationBarItem(icon: Icon(Icons.cloud_download), label: 'Дата'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Чат'),
         ],
       ),
     );
@@ -127,41 +129,70 @@ class CelebrationPage extends StatelessWidget {
   }
 }
 
-// 3. ҮЙЛДЭЛ (SliderButton & Shimmer)
-class ActionPage extends StatelessWidget {
-  const ActionPage({super.key});
+/* ===================== 3. PINPUT (NEW) ===================== */
+
+class PinputPage extends StatefulWidget {
+  const PinputPage({super.key});
+
+  @override
+  State<PinputPage> createState() => _PinputPageState();
+}
+
+class _PinputPageState extends State<PinputPage> {
+  final pinController = TextEditingController();
+  final correctPin = "1234";
+
+  void checkPin(String pin) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(pin == correctPin ? "Амжилттай нэвтэрлээ ✅" : "Буруу код ❌"),
+        backgroundColor: pin == correctPin ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Shimmer.fromColors(
-              baseColor: Colors.grey[400]!,
-              highlightColor: Colors.grey[100]!,
-              child: const Text(
-                "БАТАЛГААЖУУЛАХ",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.teal, Colors.blueGrey],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Card(
+          elevation: 10,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "PIN оруулна уу",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Pinput(
+                  length: 4,
+                  controller: pinController,
+                  obscureText: true,
+                  onCompleted: checkPin,
+                  defaultPinTheme: PinTheme(
+                    width: 50,
+                    height: 50,
+                    textStyle: const TextStyle(fontSize: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 50),
-            SliderButton(
-              action: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Амжилттай баталгаажлаа!")),
-                );
-                return true;
-              },
-              label: const Text("Чирж баталгаажуул", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 17)),
-              icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
-              buttonColor: Colors.teal,
-              backgroundColor: Colors.teal.shade50,
-              baseColor: Colors.teal,
-              width: 280,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -188,65 +219,111 @@ class CarouselPage extends StatelessWidget {
   }
 }
 
-// 5. ДАТА (HTTP API & Shimmer)
-class HttpPage extends StatefulWidget {
-  const HttpPage({super.key});
+// ================= SIMPLE CHAT =================
+class ChatPage extends StatefulWidget {
+  const ChatPage({super.key});
+
   @override
-  State<HttpPage> createState() => _HttpPageState();
+  State<ChatPage> createState() => _ChatPageState();
 }
 
-class _HttpPageState extends State<HttpPage> {
-  String fact = "Уншиж байна...";
-  bool loading = true;
+class _ChatPageState extends State<ChatPage> {
+  final controller = TextEditingController();
+  List<String> messages = [];
 
-  Future<void> fetchFact() async {
-    setState(() => loading = true);
-    try {
-      final res = await http.get(Uri.parse('https://catfact.ninja/fact'));
-      setState(() {
-        fact = jsonDecode(res.body)['fact'];
-        loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        fact = "Интернэт холболтоо шалгана уу.";
-        loading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchFact();
+  void send() {
+    if (controller.text.trim().isEmpty) return;
+    setState(() => messages.add(controller.text.trim()));
+    controller.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.teal, Colors.blueGrey],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            loading 
-              ? Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(height: 120, width: double.infinity, color: Colors.white),
-                )
-              : Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(15)),
-                  child: Text(fact, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                "Chat 💬",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: fetchFact, 
-              icon: const Icon(Icons.refresh),
-              label: const Text("Шинэ дата татах"),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+              ),
             ),
+
+            Expanded(
+              child: messages.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "No messages yet...",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: messages.length,
+                      itemBuilder: (_, i) {
+                        final isMe = i % 2 == 0;
+
+                        return Align(
+                          alignment:
+                              isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isMe
+                                  ? Colors.purple
+                                  : Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              messages[i],
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+
+            // input
+            Container(
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: controller,
+                      decoration: const InputDecoration(
+                        hintText: "Type message...",
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Colors.teal),
+                    onPressed: send,
+                  )
+                ],
+              ),
+            )
           ],
         ),
       ),
